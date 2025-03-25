@@ -134,8 +134,17 @@ river_feat = ShapelyFeature(rivers['geometry'], # first argument is the geometry
                             linewidth=0.2) # set the linewidth to be 0.2 pt
 ax.add_feature(river_feat) # add the collection of features to the map
 
-# ShapelyFeature creates a polygon, so for point data we can just use ax.plot()
-town_handle = ax.plot(towns.geometry.x, towns.geometry.y, 's', color='0.5', ms=6, transform=ccrs.PlateCarree())
+# plot the towns with (grey squares) and cities (red circles)
+town_data = towns[towns]['STATUS'] == 'Town']
+city_data = towns[towns['STATUS'] == 'City']
+
+town_handle = ax.plot(town_data.geometry.x, town_data.geometry.y, 's', color='0.5', ms=6, transform=ccrs.PlateCarree())
+
+city_handle = ax.plot(city_data.geometry.x, city_data.geometry.y, 'o', color='red', ms=6, transform=ccrs.PlateCarree())
+
+# create legend handles for towns and cities
+town_legend = mlines.Line2D([], [], marker='s', color='0.5', markerfacecolor='0.5', markersize=6, label='Towns')
+city_legend = mlines.Line2D([], [], marker='o', color='red', markerfacecolor='red', markersize=6, label='Cities')
 
 # generate a list of handles for the county datasets
 # first, we add the list of names, then the list of colors, and finally we set the transparency
@@ -153,12 +162,14 @@ nice_names = [name.title() for name in county_names]
 
 # ax.legend() takes a list of handles and a list of labels corresponding to the objects 
 # you want to add to the legend
-handles = county_handles + water_handle + river_handle + town_handle # use '+' to concatenate (combine) lists
-labels = nice_names + ['Lakes', 'Rivers', 'Towns']
+handles = county_handles + water_handle + river_handle + [town_legend, city_legend] # use '+' to concatenate (combine) lists
+labels = nice_names + ['Lakes', 'Rivers', 'Towns', 'Cities']
 
+#Create the legend
 leg = ax.legend(handles, labels, title='Legend', title_fontsize=12, 
                  fontsize=10, loc='upper left', frameon=True, framealpha=1)
 
+#Add gridlines
 gridlines = ax.gridlines(draw_labels=True, # draw  labels for the grid lines
                          xlocs=[-8, -7.5, -7, -6.5, -6, -5.5], # add longitude lines at 0.5 deg intervals
                          ylocs=[54, 54.5, 55, 55.5]) # add latitude lines at 0.5 deg intervals
@@ -166,9 +177,9 @@ gridlines.left_labels = False # turn off the left-side labels
 gridlines.bottom_labels = False # turn off the bottom labels
 
 # add the text labels for the towns
-for ind, row in towns.iterrows(): # towns.iterrows() returns the index and row
-    x, y = row.geometry.x, row.geometry.y # get the x,y location for each town
-    ax.text(x, y, row['TOWN_NAME'].title(), fontsize=7, transform=ccrs.PlateCarree()) # use plt.text to place a label at x,y
+# for ind, row in towns.iterrows(): towns.iterrows() returns the index and row  x, y = row.geometry.x, row.geometry.y
+# get the x,y location for each town  ax.text(x, y, row['TOWN_NAME'].title(), fontsize=7, transform=ccrs.PlateCarree())
+# use plt.text to place a label at x,y
 
 # add the scale bar to the axis
 scale_bar(ax)
